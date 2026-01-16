@@ -2,6 +2,7 @@ import os
 import argparse
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 def main():
     load_dotenv()
@@ -14,13 +15,12 @@ def main():
     if api_key is None:
         raise RuntimeError("Key not found")
     
+    messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
-    user_prompt = args.user_prompt
-    
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
         model="gemini-2.5-flash", 
-        contents=user_prompt
+        contents=messages
     )
 
 
@@ -34,7 +34,7 @@ def main():
     else:
         raise RuntimeError("Usage metadata not found")
     
-    print(f"User Prompt: {user_prompt}")
+    print(f"User Prompt: {messages[0].parts[0].text}")
     print(f"Prompt tokens: {prompt_tokens}")
     print(f"Response tokens: {response_tokens}")
     print(f"Response:\n {response.text}")
