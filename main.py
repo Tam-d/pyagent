@@ -1,14 +1,21 @@
 import os
+import argparse
 from dotenv import load_dotenv
 from google import genai
 
 def main():
     load_dotenv()
     api_key = os.environ.get("GEMINI_API_KEY")
-    user_prompt = "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum."
+
+    parser = argparse.ArgumentParser(description="pyagent")
+    parser.add_argument("user_prompt", type=str, help="User prompt")
+    args = parser.parse_args()
 
     if api_key is None:
         raise RuntimeError("Key not found")
+    
+
+    user_prompt = args.user_prompt
     
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
