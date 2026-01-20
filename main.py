@@ -69,6 +69,14 @@ def handle_function_calls(function_calls, verbose):
             if verbose == True:
                 print(f"-> {function_call_result.parts[0].function_response.response}")
 
+def display_prompt_info(verbose, user_prompt, prompt_tokens, response_tokens, response_text):
+    if verbose == True:
+        print(f"User prompt: {user_prompt}")
+        print(f"Prompt tokens: {prompt_tokens}")
+        print(f"Response tokens: {response_tokens}")
+    else:
+        print(f"Response:\n {response_text}")
+
 def talk_to_big_brain(user_prompt, verbose):
     api_key = os.environ.get("GEMINI_API_KEY")
 
@@ -90,12 +98,14 @@ def talk_to_big_brain(user_prompt, verbose):
     
     handle_function_calls(function_calls, verbose)
     
-    if verbose == True:
-        print(f"User prompt: {user_prompt}")
-        print(f"Prompt tokens: {prompt_tokens}")
-        print(f"Response tokens: {response_tokens}")
-    else:
-        print(f"Response:\n {response.text}")
+    display_prompt_info(
+        verbose,
+        user_prompt,
+        prompt_tokens,
+        response_tokens,
+        response.text
+    )
+
 
 def main():
     load_dotenv()
