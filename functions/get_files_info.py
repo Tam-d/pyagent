@@ -36,10 +36,3 @@ def get_files_info(working_directory, directory="."):
             return f"Error: {e}"
     
     return dir_info
-
-def main():
-
-    get_files_info("calculator")
-
-
-main()
