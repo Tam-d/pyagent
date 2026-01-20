@@ -19,16 +19,13 @@ def handle_args():
 
     return args
 
-def main():
-    load_dotenv()
-    args = handle_args()
-
+def talk_to_big_brain(user_prompt, verbose):
     api_key = os.environ.get("GEMINI_API_KEY")
 
     if api_key is None:
         raise RuntimeError("Key not found")
     
-    messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
+    messages = [types.Content(role="user", parts=[types.Part(text=user_prompt)])]
 
     client = genai.Client(api_key=api_key)
 
@@ -55,8 +52,8 @@ def main():
     else:
         raise RuntimeError("Usage metadata not found")
     
-    if args.verbose == True:
-        print(f"User prompt: {args.user_prompt}")
+    if verbose == True:
+        print(f"User prompt: {user_prompt}")
         print(f"Prompt tokens: {prompt_tokens}")
         print(f"Response tokens: {response_tokens}")
 
@@ -83,10 +80,16 @@ def main():
             
             function_results.append(function_part)
 
-            if args.verbose == True:
+            if verbose == True:
                 print(f"-> {function_call_result.parts[0].function_response.response}")
     else:
         print(f"Response:\n {response.text}")
+
+def main():
+    load_dotenv()
+    args = handle_args()
+
+    talk_to_big_brain(args.user_prompt, args.verbose)
 
 
 if __name__ == "__main__":
