@@ -19,13 +19,7 @@ def handle_args():
 
     return args
 
-def call_big_brain(api_key, user_prompt):
-    messages = [
-        types.Content(
-            role="user", 
-            parts=[types.Part(text=user_prompt)]
-        )
-    ]
+def call_big_brain(api_key, messages):
 
     client = genai.Client(api_key=api_key)
 
@@ -42,13 +36,23 @@ def call_big_brain(api_key, user_prompt):
     #print(f"---GenerateContentResponse---\n{response}\n")
     return response
 
+def get_content_from_candidates(candidates):
+    candidates_contents = []
+    
+    if candidates and len(candidates) > 0:
+        for candidate in candidates:
+            if candidate.content:
+                candidates_contents.append(candidate.content)
+
+    return candidates_contents
+
 def handle_function_calls(function_calls, verbose):
     function_results = []
 
     if function_calls:
         for function_call in function_calls:
             # print(f"Calling function: {function_call.name}({function_call.args})")
-            function_call_result = call_function(function_call)
+            function_call_result = call_function(function_call, verbose)
 
             function_parts = function_call_result.parts
             
@@ -68,14 +72,16 @@ def handle_function_calls(function_calls, verbose):
 
             if verbose == True:
                 print(f"-> {function_call_result.parts[0].function_response.response}")
+    
+    return function_results
 
 def display_prompt_info(verbose, user_prompt, prompt_tokens, response_tokens, response_text):
     if verbose == True:
         print(f"User prompt: {user_prompt}")
         print(f"Prompt tokens: {prompt_tokens}")
         print(f"Response tokens: {response_tokens}")
-    else:
-        print(f"Response:\n {response_text}")
+    
+    print(f"Response:\n {response_text}")
 
 def talk_to_big_brain(user_prompt, verbose):
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -83,28 +89,62 @@ def talk_to_big_brain(user_prompt, verbose):
     if api_key is None:
         raise RuntimeError("Key not found")
     
-    response = call_big_brain(api_key, user_prompt)
-
-    prompt_tokens = 0
-    response_tokens = 0
-    usage_mdt = response.usage_metadata
-    function_calls = response.function_calls
-
-    if usage_mdt is not None:
-        prompt_tokens = usage_mdt.prompt_token_count
-        response_tokens = usage_mdt.candidates_token_count
-    else:
-        raise RuntimeError("Usage metadata not found")
+    # the initial message to send
+    messages = [
+        types.Content(
+            role="user", 
+            parts=[types.Part(text=user_prompt)]
+        )
+    ]
     
-    handle_function_calls(function_calls, verbose)
-    
-    display_prompt_info(
-        verbose,
-        user_prompt,
-        prompt_tokens,
-        response_tokens,
-        response.text
-    )
+    for _ in range(20):
+        response = call_big_brain(api_key, messages)
+
+        prompt_tokens = 0
+        response_tokens = 0
+        usage_mdt = response.usage_metadata
+        candidates = response.candidates
+        function_calls = response.function_calls
+
+        if verbose:
+            print(f"usage_metadata: {usage_mdt}\n")
+            print(f"candidates: {candidates}\n")
+            print(f"function_calls: {function_calls}\n")
+
+        if usage_mdt is not None:
+            prompt_tokens = usage_mdt.prompt_token_count
+            response_tokens = usage_mdt.candidates_token_count
+        else:
+            raise RuntimeError("Usage metadata not found")
+        
+        if not function_calls:
+            display_prompt_info(
+                verbose,
+                user_prompt,
+                prompt_tokens,
+                response_tokens,
+                response.text
+            )
+            break
+        else:
+            #add the contents from the candidates to the running list of messages
+            messages.extend(get_content_from_candidates(candidates))
+
+            #add the function messages from the function calls made
+            messages.append(
+                types.Content(
+                    role="user", 
+                    parts=handle_function_calls(function_calls, verbose)
+                )
+            )
+        
+        display_prompt_info(
+            verbose,
+            user_prompt,
+            prompt_tokens,
+            response_tokens,
+            response.text
+        )
 
 
 def main():
