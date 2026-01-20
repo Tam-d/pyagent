@@ -42,30 +42,7 @@ def call_big_brain(api_key, user_prompt):
     #print(f"---GenerateContentResponse---\n{response}\n")
     return response
 
-def talk_to_big_brain(user_prompt, verbose):
-    api_key = os.environ.get("GEMINI_API_KEY")
-
-    if api_key is None:
-        raise RuntimeError("Key not found")
-    
-    response = call_big_brain(api_key, user_prompt)
-
-    prompt_tokens = 0
-    response_tokens = 0
-    usage_mdt = response.usage_metadata
-    function_calls = response.function_calls
-
-    if usage_mdt is not None:
-        prompt_tokens = usage_mdt.prompt_token_count
-        response_tokens = usage_mdt.candidates_token_count
-    else:
-        raise RuntimeError("Usage metadata not found")
-    
-    if verbose == True:
-        print(f"User prompt: {user_prompt}")
-        print(f"Prompt tokens: {prompt_tokens}")
-        print(f"Response tokens: {response_tokens}")
-
+def handle_function_calls(function_calls, verbose):
     function_results = []
 
     if function_calls:
@@ -91,6 +68,32 @@ def talk_to_big_brain(user_prompt, verbose):
 
             if verbose == True:
                 print(f"-> {function_call_result.parts[0].function_response.response}")
+
+def talk_to_big_brain(user_prompt, verbose):
+    api_key = os.environ.get("GEMINI_API_KEY")
+
+    if api_key is None:
+        raise RuntimeError("Key not found")
+    
+    response = call_big_brain(api_key, user_prompt)
+
+    prompt_tokens = 0
+    response_tokens = 0
+    usage_mdt = response.usage_metadata
+    function_calls = response.function_calls
+
+    if usage_mdt is not None:
+        prompt_tokens = usage_mdt.prompt_token_count
+        response_tokens = usage_mdt.candidates_token_count
+    else:
+        raise RuntimeError("Usage metadata not found")
+    
+    handle_function_calls(function_calls, verbose)
+    
+    if verbose == True:
+        print(f"User prompt: {user_prompt}")
+        print(f"Prompt tokens: {prompt_tokens}")
+        print(f"Response tokens: {response_tokens}")
     else:
         print(f"Response:\n {response.text}")
 
