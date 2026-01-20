@@ -19,13 +19,13 @@ def handle_args():
 
     return args
 
-def talk_to_big_brain(user_prompt, verbose):
-    api_key = os.environ.get("GEMINI_API_KEY")
-
-    if api_key is None:
-        raise RuntimeError("Key not found")
-    
-    messages = [types.Content(role="user", parts=[types.Part(text=user_prompt)])]
+def call_big_brain(api_key, user_prompt):
+    messages = [
+        types.Content(
+            role="user", 
+            parts=[types.Part(text=user_prompt)]
+        )
+    ]
 
     client = genai.Client(api_key=api_key)
 
@@ -40,6 +40,15 @@ def talk_to_big_brain(user_prompt, verbose):
     )
 
     #print(f"---GenerateContentResponse---\n{response}\n")
+    return response
+
+def talk_to_big_brain(user_prompt, verbose):
+    api_key = os.environ.get("GEMINI_API_KEY")
+
+    if api_key is None:
+        raise RuntimeError("Key not found")
+    
+    response = call_big_brain(api_key, user_prompt)
 
     prompt_tokens = 0
     response_tokens = 0
