@@ -26,11 +26,11 @@ def get_file_content(working_directory, file_path):
         valid_target = os.path.commonpath([work_path_abs, target_path]) == work_path_abs
         is_file = os.path.isfile(target_path)
 
-        print(f"Path: {work_path_abs}")
-        print(f"Joined: {joined_path}")
-        print(f"Target: {target_path}")
-        print(f"Valid Target: {valid_target}")
-        print(f"Is file: {is_file}")
+        # print(f"Path: {work_path_abs}")
+        # print(f"Joined: {joined_path}")
+        # print(f"Target: {target_path}")
+        # print(f"Valid Target: {valid_target}")
+        # print(f"Is file: {is_file}")
 
         if not valid_target:
             return f'Error: Cannot read "{file_path}" as it is outside the permitted working directory'
