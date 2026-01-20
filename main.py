@@ -7,16 +7,23 @@ from google.genai import types
 from prompts import system_prompt
 from call_function import available_functions, call_function
 
-def main():
-    load_dotenv()
-    api_key = os.environ.get("GEMINI_API_KEY")
-
-
-
+def handle_args():
     parser = argparse.ArgumentParser(description="pyagent")
     parser.add_argument("user_prompt", type=str, help="User prompt")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     args = parser.parse_args()
+
+    print("*********Arguments*********")
+    for arg, val in vars(args).items():
+        print(f"{arg}: {val}")
+
+    return args
+
+def main():
+    load_dotenv()
+    args = handle_args()
+
+    api_key = os.environ.get("GEMINI_API_KEY")
 
     if api_key is None:
         raise RuntimeError("Key not found")
