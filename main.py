@@ -5,10 +5,13 @@ from google import genai
 from google.genai import types
 
 from prompts import system_prompt
+from call_function import available_functions
 
 def main():
     load_dotenv()
     api_key = os.environ.get("GEMINI_API_KEY")
+
+
 
     parser = argparse.ArgumentParser(description="pyagent")
     parser.add_argument("user_prompt", type=str, help="User prompt")
@@ -26,16 +29,18 @@ def main():
         model="gemini-2.5-flash", 
         contents=messages,
         config=types.GenerateContentConfig(
+            tools=[available_functions],
             system_instruction=system_prompt,
             temperature=0
         ),
     )
 
-    print(f"---GenerateContentResponse---\n{response}\n")
+    #print(f"---GenerateContentResponse---\n{response}\n")
 
     prompt_tokens = 0
     response_tokens = 0
     usage_mdt = response.usage_metadata
+    function_calls = response.function_calls
 
     if usage_mdt is not None:
         prompt_tokens = usage_mdt.prompt_token_count
@@ -48,7 +53,11 @@ def main():
         print(f"Prompt tokens: {prompt_tokens}")
         print(f"Response tokens: {response_tokens}")
 
-    print(f"Response:\n {response.text}")
+    if function_calls:
+        for function_call in function_calls:
+            print(f"Calling function: {function_call.name}({function_call.args})")
+    else:
+        print(f"Response:\n {response.text}")
 
 
 if __name__ == "__main__":
